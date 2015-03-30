@@ -1,0 +1,69 @@
+<?php
+
+/*
+ * SQL PDO wrapper for pending request if we have big file in result
+ */
+
+Class LimitWrapper {
+
+    private $db;
+    private $con;
+    private $column;
+    private $sql;
+    private $limit;
+
+    public function __construct($con) {
+        $this->con = $con;
+        $this->db = new PDO("mysql:host=" . $this->con['host'] . ";dbname=" .
+                $this->con['dbname'], $this->con['login'], $this->con['pass']);
+        $this->db->query("SET NAMES utf8");
+    }
+
+    public function setColumnName($name) {
+        $this->column = $name;
+    }
+
+    public function setSql($sql, $limit) {
+
+        $this->sql = $sql;
+        $this->limit = $limit;
+    }
+
+    public function writeResults($filename) {
+
+        $i = 0;
+        $h = fopen("$filename.csv", "w");
+
+        do {
+            $wrapper = $this->sql . " LIMIT $i," . $this->limit;
+
+            $res = $this->db->query($wrapper)->fetchAll(PDO::FETCH_ASSOC);
+
+            /*
+             * Save data
+             */
+            foreach ($res as $cur) {
+
+                fwrite($h, $cur["$this->column"] . "\n");
+            }
+
+            $i += $this->limit;
+            $count = count($res);
+        } while ($count > 0);
+        fclose($h);
+    }
+
+}
+
+$con['host'] = 'XX.XXX.X.XX:port';
+$con['dbname'] = 'dbname';
+$con['pass'] = 'password';
+$con['login'] = 'login';
+$limitWrapper = new LimitWrapper($con);
+
+$limitWrapper->setColumnName('email');
+/*
+ * Wrapper to adds LIMIT for SQL
+ */
+$limitWrapper->setSql("SELECT email FROM olxua.users WHERE newsletter=1", 1000);
+$limitWrapper->writeResults("emails.csv");
