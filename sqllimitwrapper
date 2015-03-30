@@ -65,5 +65,5 @@ $limitWrapper->setColumnName('email');
 /*
  * Wrapper to adds LIMIT for SQL
  */
-$limitWrapper->setSql("SELECT email FROM olxua.users WHERE newsletter=1", 1000);
+$limitWrapper->setSql("SELECT email FROM users WHERE newsletter=1", 1000);
 $limitWrapper->writeResults("emails.csv");
